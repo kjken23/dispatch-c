@@ -1,8 +1,8 @@
 ﻿#include <iostream>
 #include <iomanip>
 #include "state.h"
-#include "utils.h"
 #include "integer.h"
+#include "utils.h"
 
 using namespace std;
 

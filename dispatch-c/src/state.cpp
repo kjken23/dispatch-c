@@ -1,7 +1,9 @@
 #include "state.h"
 #include "utils.h"
+#include "verify.h"
 #include <cstdlib>
 #include <ctime>
+using namespace std;
 
 State::State(int num, int interval)
 {
@@ -25,11 +27,13 @@ State::~State()
 
 }
 
-State State::newState(vector<vector<int>> choicesPool)
+State State::newState(vector<vector<int>>& choicesPool, int samplingNum)
 {
 	State state = State(this->n, this->t);
 	state.value = this->value;
 	state.verifyNum = this->verifyNum;
+	state.choices = this->choices;
+	
 	srand((int)time(0));
 	int ran = rand() % choicesPool.size();
 	vector<int> choice = choicesPool[ran];
@@ -46,6 +50,23 @@ State State::newState(vector<vector<int>> choicesPool)
 		test[choice[0]] |= testMoveNum;
 		flag = judgeIfRowFull(test, n);
 	}
+	
+	// ±éÀúvectorÉ¾³ýchoiceÔªËØ
+	for (int i = 0; i < choicesPool.size(); i++) {
+		if (choicesPool[i][0] == choice[0] && choicesPool[i][1] == choice[1]) {
+			choicesPool.erase(choicesPool.begin() + i);
+			break;
+		}
+	}
 
+	state.choices = this->choices;
+	state.choices.push_back(choice);
+
+	integer moveNum = integer(1) << (t - choice[1]);
+	state.verifyNum[choice[0]] |= moveNum;
+
+	state.round = this->round + 1;
+
+	state.value = sampling_verify(state.verifyNum, samplingNum, n, t);
 	return state;
 }
