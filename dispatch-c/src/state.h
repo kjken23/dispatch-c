@@ -1,9 +1,11 @@
+#pragma once
 #include "integer.h"
 #include <vector>
 using namespace std;
 
 class State
-{	public:
+{	
+	public:
 		State(int num, int interval);
 		~State();
 		State newState(vector<vector<int>>& choicesPool, int samplingNum);

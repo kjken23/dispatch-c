@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <iomanip>
+#include<ctime>
 #include "state.h"
 #include "node.h"
 #include "integer.h"
@@ -14,6 +15,24 @@
 #define BASE_RETURN_NUM 2
 
 using namespace std;
+
+Node bestChild(Node& node) {
+	double bestScore = DBL_MIN;
+	Node* best = NULL;
+	for (int i = 0; i < node.children.size(); i++) {
+		Node subNode = node.children[i];
+		double C = 1 / sqrt(2);
+		double left = subNode.quality / subNode.visit;
+		double right = 2.0 * log(subNode.visit) / subNode.visit;
+		double score = left + C * sqrt(right);
+
+		if (score > bestScore) {
+			best = &subNode;
+			bestScore = score;
+		}
+	}
+	return *best;
+}
 
 Node expand(Node& node, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
 	State state = State(n, t);
@@ -42,32 +61,15 @@ double defaultPolicy(Node& node, vector<vector<int>>& choicesPool, int samplingN
 }
 
 void backUp(Node& node, double& reward) {
-	while (node != NULL) {
+	while (&node != NULL) {
 		node.visit += 1;
 		node.quality += reward;
 		node = *node.parent;
 	}
 }
 
-Node bestChild(Node& node) {
-	double bestScore = DBL_MIN;
-	Node* best = NULL;
-	for (int i = 0; i < node.children.size(); i++) {
-		Node subNode = node.children[i];
-		double C = 1 / sqrt(2);
-		double left = subNode.quality / subNode.visit;
-		double right = 2.0 * log(subNode.visit) / subNode.visit;
-		double score = left + C * sqrt(right);
-
-		if (score > bestScore) {
-			best = &subNode;
-			bestScore = score;
-		}
-	}
-	return *best;
-}
-
 Node MCTS(Node node, double bestValue, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
+	cout << 2;
 	int maxAttempt, maxChoice;
 	if (node.state->value < FAST_GROW_THRESHOLD) {
 		maxAttempt = START_MAX_ATTEMPT;
@@ -129,6 +131,9 @@ int main()
 	cout << "please enter end goal:" << endl;
 	cin >> goal;
 
+	clock_t startTime, endTime;
+	startTime = clock();
+
 	vector<vector<int>> choices;
 
 	for (int i = 0; i < n; i++) {
@@ -137,6 +142,8 @@ int main()
 			choices.push_back(temp);
 		}
 	}
+
+	cout << 1;
 
 	State initState = State(n, t);
 	Node initNode = Node();
@@ -148,11 +155,57 @@ int main()
 	double bestValue = 0.0;
 	vector<vector<int>> bestChoice;
 
+	vector<int> returnRound(n * n);
+
 	vector<Node> previousNode;
 
 	while (currentNode.state->value < goal) {
-		Node previous = Node();
-		// TODO: 深拷贝
+		// 深拷贝对不对有待确认
+		Node previous = deepCopyNode(currentNode);
+		previousNode.push_back(previous);
+
+		currentNode = MCTS(currentNode, bestValue, choices, n, t, samplingNum);
+
+		if (currentNode.state->value < bestValue) {
+			bestRound = currentNode.state->round;
+			bestValue = currentNode.state->value;
+			bestChoice = currentNode.state->choices;
+		}
+
+		if (currentNode.state->value < bestValue && (bestValue - currentNode.state->value > THRESHOLD)) {
+			returnRound[currentNode.state->round] += 1;
+			int returnNum = BASE_RETURN_NUM + returnRound[currentNode.state->round];
+			cout << "------round " << currentNode.state->round << " can't fit the demand, active rollback, rollback num " << returnNum << endl;
+			currentNode.state->round -= returnNum;
+			for (int i = 0; i < returnNum; i++) {
+				vector<int> choice = currentNode.state->choices.back();
+				currentNode.state->choices.pop_back();
+				integer moveNum = integer(1) << (t - choice[1]);
+				currentNode.state->verifyNum[choice[0]] &= ~moveNum;
+				choices.push_back(choice);
+			}
+
+			if (bestValue < previousNode[currentNode.state->round].state->value || bestRound >	currentNode.state->round) {
+				bestRound = previousNode[currentNode.state->round].state->round;
+				bestValue = previousNode[currentNode.state->round].state->value;
+				bestChoice = previousNode[currentNode.state->round].state->choices;
+			}
+			currentNode = deepCopyNode(previousNode[currentNode.state->round]);
+			cout << setiosflags(ios::fixed) << setprecision(4) << bestValue << endl;
+			cout << "length of CHOICE:" << choices.size() << endl;
+			cout << "-------------finished rollback--------------" << endl;
+		}
 	}
+
+	endTime = clock();
+
+	cout << "-----------------best result------------------" << endl;
+	for (int i = 0; i < bestChoice.size(); i++) {
+		cout << "[" << bestChoice[i][0] << " , " << bestChoice[i][1] << "],";
+	}
+	cout << "sampling reliability: " << setiosflags(ios::fixed) << setprecision(4) << bestValue << "%" << endl;
+
+	cout << "The run time is: " << setiosflags(ios::fixed) << setprecision(4) << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+	cout << "Average round time is: " << setiosflags(ios::fixed) << setprecision(4) << ((double)(endTime - startTime) / CLOCKS_PER_SEC) / bestRound << "s" << endl;
 }
 

@@ -1,3 +1,4 @@
+#pragma once
 #include "state.h"
 #include <vector>
 
@@ -16,3 +17,4 @@ class Node
 		void addChildren(Node node);
 };
 
+Node deepCopyNode(Node copyfrom);
