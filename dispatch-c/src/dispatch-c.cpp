@@ -18,7 +18,7 @@ using namespace std;
 
 Node bestChild(Node& node) {
 	double bestScore = DBL_MIN;
-	Node* best = NULL;
+	Node best = Node();
 	for (int i = 0; i < node.children.size(); i++) {
 		Node subNode = node.children[i];
 		double C = 1 / sqrt(2);
@@ -27,16 +27,16 @@ Node bestChild(Node& node) {
 		double score = left + C * sqrt(right);
 
 		if (score > bestScore) {
-			best = &subNode;
+			best = subNode;
 			bestScore = score;
 		}
 	}
-	return *best;
+	return best;
 }
 
 Node expand(Node& node, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
 	State state = State(n, t);
-	state.newState(choicesPool, samplingNum);
+	state = state.newState(choicesPool, samplingNum);
 
 	Node childNode = Node();
 	childNode.state = &state;
@@ -52,11 +52,12 @@ Node treePolicy(Node& node, vector<vector<int>>& choicesPool, int n, int t, int 
 	else {
 		node = bestChild(node);
 	}
+	return node;
 }
 
 double defaultPolicy(Node& node, vector<vector<int>>& choicesPool, int samplingNum) {
 	State nowState = *node.state;
-	nowState.newState(choicesPool, samplingNum);
+	nowState = nowState.newState(choicesPool, samplingNum);
 	return nowState.value;
 }
 
@@ -69,7 +70,6 @@ void backUp(Node& node, double& reward) {
 }
 
 Node MCTS(Node node, double bestValue, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
-	cout << 2;
 	int maxAttempt, maxChoice;
 	if (node.state->value < FAST_GROW_THRESHOLD) {
 		maxAttempt = START_MAX_ATTEMPT;
@@ -142,8 +142,6 @@ int main()
 			choices.push_back(temp);
 		}
 	}
-
-	cout << 1;
 
 	State initState = State(n, t);
 	Node initNode = Node();
