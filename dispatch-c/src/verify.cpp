@@ -13,7 +13,7 @@ bool judgeSingleNode(vector<integer>& arrayList, int i, int n, int t) {
 		}
 		others |= arrayList[j];
 	}
-	return (arrayList[i] & mask) & (~others & mask) > integer(0);
+	return (arrayList[i] & mask) & (~others & mask) > 0;
 }
 
 void judge(vector<integer>& arrayList, vector<int>& countMap, int n, int t) {
