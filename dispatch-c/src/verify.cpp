@@ -5,7 +5,7 @@
 using namespace std;
 
 bool judgeSingleNode(vector<integer>& arrayList, int i, int n, int t) {
-	integer mask = integer(1) << t - 1;
+	integer mask = (integer(1) << t) - 1;
 	integer others = integer(0);
 	for (int j = 0; j < n; j++) {
 		if (j == i) {

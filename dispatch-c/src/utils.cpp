@@ -1,7 +1,7 @@
 #include "utils.h"
 
 integer rotateRight(integer i, int distance, int t) {
-	integer mask = integer(1) << t - 1;
+	integer mask = (integer(1) << t) - 1;
 	integer left = i >> distance;
 	integer right = i << (t - distance);
 	return (right | left) & mask;

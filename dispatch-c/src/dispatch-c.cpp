@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-	integer test("11111111111111111111111111111111111111111111111111111111111111111111111", 2);
+	integer test = (integer(1) << 70) - 1;
 	cout << countOneNum(test) << endl;
 }
 
