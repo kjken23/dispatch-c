@@ -1,14 +1,158 @@
 ﻿#include <iostream>
 #include <iomanip>
 #include "state.h"
+#include "node.h"
 #include "integer.h"
 #include "utils.h"
 
+#define START_MAX_CHOICE 5
+#define START_MAX_ATTEMPT 3
+#define MAX_CHOICE 15
+#define MAX_ATTEMPT 15
+#define THRESHOLD 0.05
+#define FAST_GROW_THRESHOLD 95.0
+#define BASE_RETURN_NUM 2
+
 using namespace std;
+
+Node expand(Node& node, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
+	State state = State(n, t);
+	state.newState(choicesPool, samplingNum);
+
+	Node childNode = Node();
+	childNode.state = &state;
+	node.children.push_back(childNode);
+	return childNode;
+}
+
+Node treePolicy(Node& node, vector<vector<int>>& choicesPool, int n, int t, int samplingNum, int maxChoice) {
+	if (node.children.size() < maxChoice) {
+		node = expand(node, choicesPool, n, t, samplingNum);
+		return node;
+	}
+	else {
+		node = bestChild(node);
+	}
+}
+
+double defaultPolicy(Node& node, vector<vector<int>>& choicesPool, int samplingNum) {
+	State nowState = *node.state;
+	nowState.newState(choicesPool, samplingNum);
+	return nowState.value;
+}
+
+void backUp(Node& node, double& reward) {
+	while (node != NULL) {
+		node.visit += 1;
+		node.quality += reward;
+		node = *node.parent;
+	}
+}
+
+Node bestChild(Node& node) {
+	double bestScore = DBL_MIN;
+	Node* best = NULL;
+	for (int i = 0; i < node.children.size(); i++) {
+		Node subNode = node.children[i];
+		double C = 1 / sqrt(2);
+		double left = subNode.quality / subNode.visit;
+		double right = 2.0 * log(subNode.visit) / subNode.visit;
+		double score = left + C * sqrt(right);
+
+		if (score > bestScore) {
+			best = &subNode;
+			bestScore = score;
+		}
+	}
+	return *best;
+}
+
+Node MCTS(Node node, double bestValue, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
+	int maxAttempt, maxChoice;
+	if (node.state->value < FAST_GROW_THRESHOLD) {
+		maxAttempt = START_MAX_ATTEMPT;
+		maxChoice = START_MAX_CHOICE;
+	}
+	else {
+		maxAttempt = MAX_ATTEMPT;
+		maxChoice = MAX_CHOICE;
+	}
+	vector<vector<int>> tempPool = choicesPool;
+	Node best;
+	for (int i = 0; i < maxAttempt; i++) {
+		for (int j = 0; j < maxChoice; j++) {
+			Node expandNode = treePolicy(node, tempPool, n, t, samplingNum, maxChoice);
+			double reward = defaultPolicy(expandNode, tempPool, samplingNum);
+			backUp(expandNode, reward);
+		}
+		best = bestChild(node);
+		cout << setiosflags(ios::fixed) << setprecision(4) << best.state->value << endl;
+		if (best.state->value > bestValue || ((best.state->value < bestValue) && (bestValue - best.state->value < THRESHOLD))) {
+			break;
+		}
+		if (i == maxAttempt - 1) {
+			cout << "------round " << best.state->round << " can't get a better answer--------" << endl;
+		}
+		else {
+			cout << "------round " << best.state->round << " failed finding better answers,move to next attempt--------" << endl;
+		}
+	}
+
+	vector<int> currentChoice = best.state->choices.back();
+	for (int i = 0; i < choicesPool.size(); i++) {
+		if (choicesPool[i][0] == currentChoice[0] && choicesPool[i][1] == currentChoice[1]) {
+			choicesPool.erase(choicesPool.begin() + i);
+			break;
+		}
+	}
+
+	cout << "------round " << best.state->round << " finished expending and simulation, choosing best leaf node---------" << endl;
+	for (int i = 0; i < best.state->choices.size(); i++) {
+		cout << "[" << best.state->choices[i][0] << " , " << best.state->choices[i][1] << "],";
+	}
+	cout << "result:" << setiosflags(ios::fixed) << setprecision(4) << best.state->value << "%" << endl;
+	cout << "length of CHOICE:" << choicesPool.size() << endl;
+	cout << "---------------------------------------------------------------------" << endl;
+
+	return best;
+}
 
 int main()
 {
-	integer test = (integer(1) << 70) - 1;
-	cout << countOneNum(test) << endl;
+	int n, t;
+	int samplingNum = 10000;
+	double goal;
+	cout << "please enter N:" << endl;
+	cin >> n;
+	cout << "please enter T:" << endl;
+	cin >> t;
+	cout << "please enter end goal:" << endl;
+	cin >> goal;
+
+	vector<vector<int>> choices;
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < t; j++) {
+			vector<int> temp{ i, j };
+			choices.push_back(temp);
+		}
+	}
+
+	State initState = State(n, t);
+	Node initNode = Node();
+	initNode.state = &initState;
+
+	Node currentNode = initNode;
+
+	int bestRound = 0;
+	double bestValue = 0.0;
+	vector<vector<int>> bestChoice;
+
+	vector<Node> previousNode;
+
+	while (currentNode.state->value < goal) {
+		Node previous = Node();
+		// TODO: 深拷贝
+	}
 }
 
