@@ -4,19 +4,19 @@
 #include "utils.h"
 using namespace std;
 
-bool judgeSingleNode(vector<integer>& arrayList, int i, int n, int t) {
-	integer mask = (integer(1) << t) - 1;
-	integer others = integer(0);
+bool judgeSingleNode(vector<uint64_t>& arrayList, int i, int n, int t) {
+	uint64_t mask = (uint64_t(1) << t) - 1;
+	uint64_t others = uint64_t(0);
 	for (int j = 0; j < n; j++) {
 		if (j == i) {
 			continue;
 		}
 		others |= arrayList[j];
 	}
-	return (arrayList[i] & mask) & (~others & mask) > 0;
+	return ((arrayList[i] & mask) & (~others & mask)) > 0;
 }
 
-void judge(vector<integer>& arrayList, vector<int>& countMap, int n, int t) {
+void judge(vector<uint64_t>& arrayList, vector<int>& countMap, int n, int t) {
 	for (int i = 0; i < n; i++) {
 		if (judgeSingleNode(arrayList, i, n, t)) {
 			countMap[i] += 1;
@@ -24,8 +24,8 @@ void judge(vector<integer>& arrayList, vector<int>& countMap, int n, int t) {
 	}
 }
 
-double sampling_verify(vector<integer>& arrayList, int samplingNum, int n, int t) {
-	vector<integer> temp = arrayList;
+double sampling_verify(vector<uint64_t>& arrayList, int samplingNum, int n, int t) {
+	vector<uint64_t> temp = arrayList;
 	vector<int> countMap(n);
 	for (int i = 0; i < samplingNum; i++) {
 		srand((int)time(0));
@@ -39,5 +39,5 @@ double sampling_verify(vector<integer>& arrayList, int samplingNum, int n, int t
 	for (int i = 0; i < n; i++) {
 		count += countMap[i];
 	}
-	return count / (n * samplingNum);
+	return (double)count / ((double)n * (double)samplingNum) * 100;
 }

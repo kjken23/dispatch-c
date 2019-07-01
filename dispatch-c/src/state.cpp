@@ -10,7 +10,7 @@ State::State(int num, int interval)
 	n = num;
 	t = interval;
 	value = 0.0;
-	vector<integer> tempVerify(num);
+	vector<uint64_t> tempVerify(num);
 	verifyNum = tempVerify;
 	round = 0;
 	int choicesLen = num * num / 2;
@@ -27,18 +27,18 @@ State::~State()
 
 }
 
-State State::newState(vector<vector<int>>& choicesPool, int samplingNum)
+State* State::newState(vector<vector<int>>& choicesPool, int samplingNum)
 {
-	State state = State(this->n, this->t);
-	state.value = this->value;
-	state.verifyNum = this->verifyNum;
-	state.choices = this->choices;
+	State* state = new State(this->n, this->t);
+	state->value = this->value;
+	state->verifyNum = this->verifyNum;
+	state->choices = this->choices;
 	
 	srand((int)time(0));
 	int ran = rand() % choicesPool.size();
 	vector<int> choice = choicesPool[ran];
-	vector<integer> test = verifyNum;
-	integer testMoveNum = integer(1) << (t - choice[1]);
+	vector<uint64_t> test = verifyNum;
+	uint64_t testMoveNum = uint64_t(1) << (t - choice[1]);
 	test[choice[0]] |= testMoveNum;
 	bool flag = judgeIfRowFull(test, n);
 	while (flag == false) {
@@ -46,27 +46,27 @@ State State::newState(vector<vector<int>>& choicesPool, int samplingNum)
 		ran = rand() % choicesPool.size();
 		choice = choicesPool[ran];
 		test = verifyNum;
-		testMoveNum = integer(1) << (t - choice[1]);
+		testMoveNum = uint64_t(1) << (t - choice[1]);
 		test[choice[0]] |= testMoveNum;
 		flag = judgeIfRowFull(test, n);
 	}
 	
 	// ±éÀúvectorÉ¾³ýchoiceÔªËØ
-	for (int i = 0; i < choicesPool.size(); i++) {
+	for (size_t i = 0; i < choicesPool.size(); i++) {
 		if (choicesPool[i][0] == choice[0] && choicesPool[i][1] == choice[1]) {
 			choicesPool.erase(choicesPool.begin() + i);
 			break;
 		}
 	}
 
-	state.choices = this->choices;
-	state.choices.push_back(choice);
+	state->choices = this->choices;
+	state->choices.push_back(choice);
 
-	integer moveNum = integer(1) << (t - choice[1]);
-	state.verifyNum[choice[0]] |= moveNum;
+	uint64_t moveNum = uint64_t(1) << (t - choice[1]);
+	state->verifyNum[choice[0]] |= moveNum;
 
-	state.round = this->round + 1;
+	state->round = this->round + 1;
 
-	state.value = sampling_verify(state.verifyNum, samplingNum, n, t);
+	state->value = sampling_verify(state->verifyNum, samplingNum, n, t);
 	return state;
 }

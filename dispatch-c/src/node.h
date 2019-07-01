@@ -8,13 +8,13 @@ class Node
 {
 	public:
 		Node* parent;
-		vector<Node> children;
+		vector<Node*> children;
 		double quality;
 		int visit;
 		State* state;
 		Node();
 		~Node();
-		void addChildren(Node node);
+		void addChildren(Node* node);
 };
 
 Node deepCopyNode(Node copyfrom);

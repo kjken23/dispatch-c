@@ -12,9 +12,9 @@ Node::~Node()
 {
 }
 
-void Node::addChildren(Node node)
+void Node::addChildren(Node* node)
 {	
-	node.parent = this;
+	node->parent = this;
 	children.push_back(node);
 }
 

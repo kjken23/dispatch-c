@@ -1,9 +1,8 @@
-#include "integer.h"
 #include <vector>
 using namespace std;
 
-integer rotateRight(integer i, int distance, int t);
+uint64_t rotateRight(uint64_t i, int distance, int t);
 
-int countOneNum(integer n);
+int countOneNum(uint64_t n);
 
-bool judgeIfRowFull(vector<integer>& arrayList, int n);
+bool judgeIfRowFull(vector<uint64_t>& arrayList, int n);
