@@ -33,7 +33,7 @@ Node* bestChild(Node* node) {
 	return best;
 }
 
-Node* expand(Node* node, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
+Node* expand(Node* node, vector<vector<unsigned int>>& choicesPool, unsigned int n, unsigned int t, unsigned int samplingNum) {
 	State* state = node->state;
 	state = state->newState(choicesPool, samplingNum);
 
@@ -43,8 +43,8 @@ Node* expand(Node* node, vector<vector<int>>& choicesPool, int n, int t, int sam
 	return childNode;
 }
 
-Node* treePolicy(Node* node, vector<vector<int>>& choicesPool, int n, int t, int samplingNum, int maxChoice) {
-	if (node->children.size() < (size_t)maxChoice) {
+Node* treePolicy(Node* node, vector<vector<unsigned int>>& choicesPool, unsigned int n, unsigned int t, unsigned int samplingNum, unsigned int maxChoice) {
+	if (node->children.size() < maxChoice) {
 		node = expand(node, choicesPool, n, t, samplingNum);
 		return node;
 	}
@@ -54,7 +54,7 @@ Node* treePolicy(Node* node, vector<vector<int>>& choicesPool, int n, int t, int
 	return node;
 }
 
-double defaultPolicy(Node* node, vector<vector<int>>& choicesPool,int n, int t, int samplingNum) {
+double defaultPolicy(Node* node, vector<vector<unsigned int>>& choicesPool, unsigned int n, unsigned int t, unsigned int samplingNum) {
 	State* nowState = node->state;
 	nowState = nowState->newState(choicesPool, samplingNum);
 	return nowState->value;
@@ -68,8 +68,8 @@ void backUp(Node* node, double& reward) {
 	}
 }
 
-Node* MCTS(Node* node, double bestValue, vector<vector<int>>& choicesPool, int n, int t, int samplingNum) {
-	int maxAttempt, maxChoice;
+Node* MCTS(Node* node, double bestValue, vector<vector<unsigned int>>& choicesPool, unsigned int n, unsigned int t, unsigned int samplingNum) {
+	unsigned int maxAttempt, maxChoice;
 	if (node->state->value < FAST_GROW_THRESHOLD) {
 		maxAttempt = START_MAX_ATTEMPT;
 		maxChoice = START_MAX_CHOICE;
@@ -78,10 +78,10 @@ Node* MCTS(Node* node, double bestValue, vector<vector<int>>& choicesPool, int n
 		maxAttempt = MAX_ATTEMPT;
 		maxChoice = MAX_CHOICE;
 	}
-	vector<vector<int>> tempPool = choicesPool;
+	vector<vector<unsigned int>> tempPool = choicesPool;
 	Node* best;
-	for (int i = 0; i < maxAttempt; i++) {
-		for (int j = 0; j < maxChoice; j++) {
+	for (unsigned int i = 0; i < maxAttempt; i++) {
+		for (unsigned int j = 0; j < maxChoice; j++) {
 			Node* expandNode = treePolicy(node, tempPool, n, t, samplingNum, maxChoice);
 			double reward = defaultPolicy(expandNode, tempPool, n, t, samplingNum);
 			backUp(expandNode, reward);
@@ -99,7 +99,7 @@ Node* MCTS(Node* node, double bestValue, vector<vector<int>>& choicesPool, int n
 		}
 	}
 
-	vector<int> currentChoice = best->state->choices.back();
+	vector<unsigned int> currentChoice = best->state->choices.back();
 	for (size_t i = 0; i < choicesPool.size(); i++) {
 		if (choicesPool[i][0] == currentChoice[0] && choicesPool[i][1] == currentChoice[1]) {
 			choicesPool.erase(choicesPool.begin() + i);
@@ -120,8 +120,8 @@ Node* MCTS(Node* node, double bestValue, vector<vector<int>>& choicesPool, int n
 
 int main()
 {
-	int n, t;
-	int samplingNum = 10000;
+	unsigned int n, t;
+	unsigned int samplingNum = 10000;
 	double goal;
 	cout << "please enter N:" << endl;
 	cin >> n;
@@ -133,11 +133,11 @@ int main()
 	clock_t startTime, endTime;
 	startTime = clock();
 
-	vector<vector<int>> choices;
+	vector<vector<unsigned int>> choices;
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < t; j++) {
-			vector<int> temp{ i, j };
+	for (unsigned int i = 0; i < n; i++) {
+		for (unsigned int j = 0; j < t; j++) {
+			vector<unsigned int> temp{ i, j };
 			choices.push_back(temp);
 		}
 	}
@@ -148,11 +148,11 @@ int main()
 
 	Node* currentNode = &initNode;
 
-	int bestRound = 0;
+	unsigned int bestRound = 0;
 	double bestValue = 0.0;
-	vector<vector<int>> bestChoice;
+	vector<vector<unsigned int>> bestChoice;
 
-	vector<int> returnRound(n * n);
+	vector<unsigned int> returnRound(n * n);
 
 	vector<double> previousNode;
 
@@ -170,11 +170,11 @@ int main()
 
 		if (currentNode->state->value < bestValue && (bestValue - currentNode->state->value > THRESHOLD)) {
 			returnRound[currentNode->state->round] += 1;
-			int returnNum = BASE_RETURN_NUM + returnRound[currentNode->state->round];
+			unsigned int returnNum = BASE_RETURN_NUM + returnRound[currentNode->state->round];
 			cout << "------round " << currentNode->state->round << " can't fit the demand, active rollback, rollback num " << returnNum << endl;
 			currentNode->state->round -= returnNum;
-			for (int i = 0; i < returnNum; i++) {
-				vector<int> choice = currentNode->state->choices.back();
+			for (unsigned int i = 0; i < returnNum; i++) {
+				vector<unsigned int> choice = currentNode->state->choices.back();
 				currentNode->state->choices.pop_back();
 				uint64_t moveNum = uint64_t(1) << (t - choice[1]);
 				currentNode->state->verifyNum[choice[0]] &= ~moveNum;

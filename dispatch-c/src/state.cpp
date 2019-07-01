@@ -5,7 +5,7 @@
 #include <ctime>
 using namespace std;
 
-State::State(int num, int interval)
+State::State(unsigned int num, unsigned int interval)
 {
 	n = num;
 	t = interval;
@@ -14,7 +14,7 @@ State::State(int num, int interval)
 	verifyNum = tempVerify;
 	round = 0;
 	int choicesLen = num * num / 2;
-	vector<vector<int>> tempChoices(choicesLen);
+	vector<vector<unsigned int>> tempChoices(choicesLen);
 	int perChoiceLen = 2;
 	for (int i = 0; i < choicesLen; i++) {
 		tempChoices[i].resize(perChoiceLen);
@@ -27,7 +27,7 @@ State::~State()
 
 }
 
-State* State::newState(vector<vector<int>>& choicesPool, int samplingNum)
+State* State::newState(vector<vector<unsigned int>>& choicesPool, unsigned int samplingNum)
 {
 	State* state = new State(this->n, this->t);
 	state->value = this->value;
@@ -36,7 +36,7 @@ State* State::newState(vector<vector<int>>& choicesPool, int samplingNum)
 	
 	srand((int)time(0));
 	int ran = rand() % choicesPool.size();
-	vector<int> choice = choicesPool[ran];
+	vector<unsigned int> choice = choicesPool[ran];
 	vector<uint64_t> test = verifyNum;
 	uint64_t testMoveNum = uint64_t(1) << (t - choice[1]);
 	test[choice[0]] |= testMoveNum;

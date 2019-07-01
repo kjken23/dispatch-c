@@ -10,11 +10,9 @@ class Node
 		Node* parent;
 		vector<Node*> children;
 		double quality;
-		int visit;
+		unsigned int visit;
 		State* state;
 		Node();
 		~Node();
 		void addChildren(Node* node);
 };
-
-Node deepCopyNode(Node copyfrom);
