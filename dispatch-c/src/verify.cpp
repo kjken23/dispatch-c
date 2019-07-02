@@ -26,7 +26,7 @@ void judge(vector<uint64_t>& arrayList, vector<unsigned int>& countMap, unsigned
 
 double sampling_verify(vector<uint64_t>& arrayList, unsigned int samplingNum, unsigned int n, unsigned int t) {
 	vector<uint64_t> temp = arrayList;
-	vector<int> countMap(n);
+	vector<unsigned int> countMap(n);
 	for (unsigned int i = 0; i < samplingNum; i++) {
 		srand((int)time(0));
 		for (unsigned int j = 0; j < n; j++) {
